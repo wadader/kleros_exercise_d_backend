@@ -1,7 +1,7 @@
 {
-  "name": "ts-express-node-template",
+  "name": "kleros_exercise_d_backend",
   "version": "1.0.0",
-  "description": "A bare-bones template for using typescript in a node-express project",
+  "description": "A backend for kleros_exercise_d",
   "main": "index.js",
   "repository": "https://github.com/Mbaamir/ts-express-node-template.git",
   "author": "Muhammad Bin Aamir <Mbaamir21@gmail.com>",
