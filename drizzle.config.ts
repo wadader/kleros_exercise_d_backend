@@ -2,8 +2,8 @@ import type { Config } from "drizzle-kit";
 import { env_Vars } from "./src/config/init";
 
 export default {
-  schema: "./src/drizzle/schema/",
-  out: "./src/drizzle/schema/generated",
+  schema: "./src/database/drizzle/schema/",
+  out: "./src/database/drizzle/schema/generated",
   driver: "pg",
   dbCredentials: {
     user: env_Vars.Db.USER,

@@ -18,6 +18,11 @@ export interface DbEnv {
   PORT: number;
 }
 
+export interface AuthEnv {
+  THIRDWEB_AUTH_PRIVATE_KEY: string;
+  THIRDWEB_AUTH_DOMAIN: string;
+}
+
 type OptionalStringProperties<T> = {
   [K in keyof T]: string | undefined;
 };
@@ -27,5 +32,5 @@ export interface EnvClassConstructorArgs {
   appEnv: OptionalStringProperties<AppEnv>;
   randomEnv: OptionalStringProperties<RandomEnv>;
   dbEnv: OptionalStringProperties<DbEnv>;
-
+  authEnv: OptionalStringProperties<AuthEnv>;
 }
