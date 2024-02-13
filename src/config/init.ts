@@ -12,7 +12,6 @@ const envArg: EnvClassConstructorArgs = {
   appEnv: {
     BACKEND_PORT: process.env.BACKEND_PORT,
   },
-  randomEnv: { RANDOM_SEED: process.env.RANDOM_SEED },
   dbEnv: {
     HOST: process.env.DB_HOST,
     USER: process.env.DB_USER,

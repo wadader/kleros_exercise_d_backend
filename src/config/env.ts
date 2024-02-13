@@ -4,7 +4,6 @@ import {
   DbEnv,
   EnvClassConstructorArgs,
   InfuraEnv,
-  RandomEnv,
 } from "./types";
 import dotenv from "dotenv";
 
@@ -23,11 +22,6 @@ export class Env_Vars {
       throw "INFURA_ENDPOINT not defined in env";
     this.infura = {
       INFURA_ENDPOINT: envArgs.infuraEnv.INFURA_ENDPOINT,
-    };
-
-    if (!envArgs.randomEnv.RANDOM_SEED) throw "RANDOM_SEED not defined in env";
-    this.random = {
-      RANDOM_SEED: envArgs.randomEnv.RANDOM_SEED,
     };
 
     if (!envArgs.dbEnv.HOST) throw "DB_HOST not defined in env";
@@ -57,7 +51,6 @@ export class Env_Vars {
   }
 
   readonly infura: InfuraEnv;
-  readonly random: RandomEnv;
   readonly app: AppEnv;
   readonly Db: DbEnv;
   readonly Auth: AuthEnv;

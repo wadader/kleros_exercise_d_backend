@@ -6,10 +6,6 @@ export interface InfuraEnv {
   INFURA_ENDPOINT: string;
 }
 
-export interface RandomEnv {
-  RANDOM_SEED: string;
-}
-
 export interface DbEnv {
   HOST: string;
   USER: string;
@@ -30,7 +26,6 @@ type OptionalStringProperties<T> = {
 export interface EnvClassConstructorArgs {
   infuraEnv: OptionalStringProperties<InfuraEnv>;
   appEnv: OptionalStringProperties<AppEnv>;
-  randomEnv: OptionalStringProperties<RandomEnv>;
   dbEnv: OptionalStringProperties<DbEnv>;
   authEnv: OptionalStringProperties<AuthEnv>;
 }
