@@ -31,5 +31,5 @@ export const rpslzGames = pgTable("rpslz_games", {
 });
 
 export const logins = pgTable("logins", {
-  nonce: varchar("nonce", { length: 32 }).primaryKey(),
+  nonce: text("logins").primaryKey(),
 });
