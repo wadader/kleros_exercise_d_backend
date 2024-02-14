@@ -1,16 +1,16 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "4f94d54d-0bb8-42b9-884e-1a37184bdc06",
+  "id": "54f32e21-9da7-4f1b-afdd-724c5a709b35",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "logins": {
       "name": "logins",
       "schema": "",
       "columns": {
-        "nonce": {
-          "name": "nonce",
-          "type": "varchar(32)",
+        "logins": {
+          "name": "logins",
+          "type": "text",
           "primaryKey": true,
           "notNull": true
         }
@@ -109,7 +109,7 @@
         },
         "salt": {
           "name": "salt",
-          "type": "text",
+          "type": "numeric(78)",
           "primaryKey": false,
           "notNull": true
         },

@@ -5,13 +5,14 @@ import {
   pgTable,
   serial,
   integer,
-  varchar,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 export const salts = pgTable("salts", {
   id: serial("id").primaryKey(),
-  salt: text("salt").notNull().unique(),
-  requestedByAddres: char("requested_by_address", { length: 42 }).notNull(),
+  // numeric precision of 78 is over 2^256, good enough for soring a uint256 equivalent
+  salt: numeric("salt", { precision: 78 }).notNull().unique(),
+  requestedByAddress: char("requested_by_address", { length: 42 }).notNull(),
 });
 
 export const rpslzGames = pgTable("rpslz_games", {

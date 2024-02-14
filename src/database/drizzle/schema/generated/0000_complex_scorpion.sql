@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "logins" (
-	"nonce" varchar(32) PRIMARY KEY NOT NULL
+	"logins" text PRIMARY KEY NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "rpslz_games" (
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "rpslz_games" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "salts" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"salt" text NOT NULL,
+	"salt" numeric(78) NOT NULL,
 	"requested_by_address" char(42) NOT NULL,
 	CONSTRAINT "salts_salt_unique" UNIQUE("salt")
 );

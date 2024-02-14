@@ -5,7 +5,8 @@ import { SiweResponse } from "siwe";
 import Session from "express-session";
 
 import { env_Vars } from "./config/init";
-import { siweRouter } from "./routes/siwe";
+import { siweRouter } from "./routes/auth/siwe";
+import { saltRouter } from "./routes/salt";
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.get("/", (_req: Request, res: Response) => {
 app.use(express.json());
 
 export const corsOptions: CorsOptions = {
-  origin: ["http://localhost:5174/", "http://localhost:5173/"],
+  origin: ["http://localhost:5174", "http://localhost:5173"],
   credentials: true,
 };
 
@@ -43,6 +44,8 @@ app.use(
 );
 
 app.use("/api/v1/auth", siweRouter);
+app.use("/api/v1/salt", saltRouter);
+
 
 app.get("*", function (_req: Request, res: Response) {
   console.log("_req.params", _req.params);
