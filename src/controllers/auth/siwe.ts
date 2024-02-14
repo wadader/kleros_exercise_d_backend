@@ -42,9 +42,9 @@ export const verifyMessage = async (req: Request, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
   try {
     req.session.destroy((err) => {
-      throw err;
+      if (err) throw err;
+      return res.json({ ok: true });
     });
-    return res.json({ ok: true });
   } catch (_error) {
     console.error("Logout-error:", _error);
     res.status(500).json({ ok: false });
