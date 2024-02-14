@@ -4,6 +4,7 @@ import { EnvClassConstructorArgs } from "./types";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { getDrizzleDb } from "../database/database";
+import { Salt } from "../models/salt";
 
 const envArg: EnvClassConstructorArgs = {
   infuraEnv: {
@@ -18,14 +19,12 @@ const envArg: EnvClassConstructorArgs = {
     PASSWORD: process.env.DB_PASSWORD,
     DATABASE_NAME: process.env.DB_DATABASE_NAME,
     PORT: process.env.DB_PORT,
-  },
-  authEnv: {
-    THIRDWEB_AUTH_PRIVATE_KEY: process.env.THIRDWEB_AUTH_PRIVATE_KEY,
-    THIRDWEB_AUTH_DOMAIN: process.env.THIRDWEB_AUTH_DOMAIN,
-  },
+  }
 };
 
 export const env_Vars = new Env_Vars(envArg);
+
+let salt: Salt;
 
 export async function init() {
   try {
@@ -48,6 +47,8 @@ export async function init() {
       migrationsFolder: "./src/database/drizzle/schema/generated",
     });
     console.log("completed migrations");
+
+    salt = new Salt();
   } catch (err) {
     console.error("migrations failed:", err);
     throw err;
@@ -57,4 +58,6 @@ export async function init() {
 // comment out when generating migrations
 init();
 
-export const drizzleDb = getDrizzleDb(env_Vars.Db);
+const drizzleDb = getDrizzleDb(env_Vars.Db);
+
+export { salt, drizzleDb };

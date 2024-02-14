@@ -1,11 +1,21 @@
 import express from "express";
 import { Request, Response } from "express";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
+import { SiweResponse } from "siwe";
+import Session from "express-session";
+
 import { env_Vars } from "./config/init";
-import { authRouter } from "./middleware/authentication/thirdwebAuth";
-import { CorsOptions } from "cors";
+import { siweRouter } from "./routes/siwe";
 
 const app = express();
+
+// Augment express-session with a custom SessionData object
+declare module "express-session" {
+  interface SessionData {
+    nonce: string;
+    siwe: SiweResponse;
+  }
+}
 
 app.get("/", (_req: Request, res: Response) => {
   res.json({
@@ -16,19 +26,26 @@ app.get("/", (_req: Request, res: Response) => {
 app.use(express.json());
 
 export const corsOptions: CorsOptions = {
-  origin: [
-    `https://${env_Vars.Auth.THIRDWEB_AUTH_DOMAIN}`,
-    `http://${env_Vars.Auth.THIRDWEB_AUTH_DOMAIN}`,
-    "http://localhost:5174",
-  ],
+  origin: ["http://localhost:5174/", "http://localhost:5173/"],
   credentials: true,
 };
 
 app.use(cors(corsOptions));
 
-app.use("/api/v1/auth", authRouter);
+app.use(
+  Session({
+    name: "siwe",
+    secret: "siwe-secret",
+    resave: true,
+    saveUninitialized: false,
+    cookie: { secure: false, sameSite: "lax" },
+  })
+);
+
+app.use("/api/v1/auth", siweRouter);
 
 app.get("*", function (_req: Request, res: Response) {
+  console.log("_req.params", _req.params);
   console.log("404ing");
   res.status(404).json({ status: "404" });
 });

@@ -1,6 +1,6 @@
 import {
   AppEnv,
-  AuthEnv,
+  // AuthEnv,
   DbEnv,
   EnvClassConstructorArgs,
   InfuraEnv,
@@ -39,19 +39,10 @@ export class Env_Vars {
     };
     if (isNaN(this.Db.PORT)) throw "DB_PORT does not seem like a valid number";
 
-    if (!envArgs.authEnv.THIRDWEB_AUTH_PRIVATE_KEY)
-      throw "THIRDWEB_AUTH_PRIVATE_KEY not defined in env";
-    if (!envArgs.authEnv.THIRDWEB_AUTH_DOMAIN)
-      throw "THIRDWEB_AUTH_DOMAIN not defined in env";
-
-    this.Auth = {
-      THIRDWEB_AUTH_PRIVATE_KEY: envArgs.authEnv.THIRDWEB_AUTH_PRIVATE_KEY,
-      THIRDWEB_AUTH_DOMAIN: envArgs.authEnv.THIRDWEB_AUTH_DOMAIN,
-    };
   }
 
   readonly infura: InfuraEnv;
   readonly app: AppEnv;
   readonly Db: DbEnv;
-  readonly Auth: AuthEnv;
+
 }
