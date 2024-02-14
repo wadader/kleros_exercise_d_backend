@@ -5,6 +5,7 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { getDrizzleDb } from "../database/database";
 import { Salt } from "../models/salt";
+import { Login } from "../middleware/authentication/login";
 
 const envArg: EnvClassConstructorArgs = {
   infuraEnv: {
@@ -19,12 +20,13 @@ const envArg: EnvClassConstructorArgs = {
     PASSWORD: process.env.DB_PASSWORD,
     DATABASE_NAME: process.env.DB_DATABASE_NAME,
     PORT: process.env.DB_PORT,
-  }
+  },
 };
 
 export const env_Vars = new Env_Vars(envArg);
 
 let salt: Salt;
+let logins: Login;
 
 export async function init() {
   try {
@@ -49,6 +51,7 @@ export async function init() {
     console.log("completed migrations");
 
     salt = new Salt();
+    logins = new Login();
   } catch (err) {
     console.error("migrations failed:", err);
     throw err;
@@ -60,4 +63,4 @@ init();
 
 const drizzleDb = getDrizzleDb(env_Vars.Db);
 
-export { salt, drizzleDb };
+export { salt, logins, drizzleDb };
