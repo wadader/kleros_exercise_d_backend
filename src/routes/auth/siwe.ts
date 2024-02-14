@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { logout, attachNonce, verifyMessage } from "../controllers/siwe";
+import { logout, attachNonce, verifyMessage } from "../../controllers/auth/siwe";
 
 export const siweRouter = Router();
 

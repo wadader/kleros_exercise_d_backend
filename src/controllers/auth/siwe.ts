@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { generateNonce, SiweMessage } from "siwe";
-import { logins } from "../config/init";
+import { logins } from "../../config/init";
 
 export const attachNonce = async (
   req: Request,
