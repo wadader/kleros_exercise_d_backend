@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyUser } from "../middleware/authentication/siwe";
-import { createGame } from "../controllers/games";
+import { createGame } from "../controllers/games/games";
 
 export const gameRouter = Router();
 

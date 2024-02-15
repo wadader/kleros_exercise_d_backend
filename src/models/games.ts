@@ -1,5 +1,5 @@
 import { EthAddress, Hash } from "../types/web3";
-import { drizzleDb, salt } from "../config/init";
+import { drizzleDb, encryptor, salt } from "../config/init";
 import { rpslzGames } from "../database/drizzle/schema/schema";
 import { RPS_ARTIFACT } from "../artifacts/RPS";
 import { getPublicClient } from "../config/ethClients";
@@ -14,11 +14,12 @@ export class Game {
     this.publicClient = getPublicClient(infuraEndpoint);
   }
 
-  insertGame = async (
+  insertGameAndGetCreatorIdentifier = async (
     gameCreationTxHash: Hash,
     _salt: string,
-    createdGameAddress: EthAddress
-  ) => {
+    createdGameAddress: EthAddress,
+    creatorAddress: EthAddress
+  ): Promise<string> => {
     try {
       const saltId = await salt.getSaltId(_salt);
 
@@ -34,6 +35,15 @@ export class Game {
         saltId,
         joinerAddress,
       });
+
+      const creatorIdentifier = this.generateIdentifier(
+        gameCreationTxHash,
+        creatorAddress
+      );
+
+      this.saveCreatorIdentifier(gameCreationTxHash, creatorIdentifier);
+
+      return creatorIdentifier;
     } catch (e) {
       console.error("insertGame:", e);
       throw e;
@@ -48,5 +58,29 @@ export class Game {
     });
   };
 
+  private saveCreatorIdentifier = (
+    gameCreationTxHash: Hash,
+    creatorIdentifier: string
+  ) => {
+    const gameIdentifier: GameIdentifiers = {
+      creatorIdentifier,
+      joinerIdentifier: undefined,
+    };
+
+    this.gameIdentifers.set(gameCreationTxHash, gameIdentifier);
+  };
+
+  private generateIdentifier = (txHash: Hash, address: EthAddress): string => {
+    const gameIdentifierString = `${txHash}_${address}`;
+    return encryptor.encrypt(Buffer.from(gameIdentifierString));
+  };
+
   publicClient: PublicClient;
+
+  gameIdentifers = new Map<Hash, GameIdentifiers>();
+}
+
+interface GameIdentifiers {
+  creatorIdentifier: string;
+  joinerIdentifier: string | undefined;
 }

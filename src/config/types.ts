@@ -14,6 +14,10 @@ export interface DbEnv {
   PORT: number;
 }
 
+export interface SocketEnv {
+  SOCKET_KEY: string;
+}
+
 type OptionalStringProperties<T> = {
   [K in keyof T]: string | undefined;
 };
@@ -22,4 +26,5 @@ export interface EnvClassConstructorArgs {
   infuraEnv: OptionalStringProperties<InfuraEnv>;
   appEnv: OptionalStringProperties<AppEnv>;
   dbEnv: OptionalStringProperties<DbEnv>;
+  socketEnv: OptionalStringProperties<SocketEnv>;
 }

@@ -7,6 +7,7 @@ import { getDrizzleDb } from "../database/database";
 import { Salt } from "../models/salt";
 import { Login } from "../middleware/authentication/login";
 import { Game } from "../models/games";
+import { Encryption } from "../utils/Encryption";
 
 const envArg: EnvClassConstructorArgs = {
   infuraEnv: {
@@ -22,6 +23,9 @@ const envArg: EnvClassConstructorArgs = {
     DATABASE_NAME: process.env.DB_DATABASE_NAME,
     PORT: process.env.DB_PORT,
   },
+  socketEnv: {
+    SOCKET_KEY: process.env.SOCKET_KEY,
+  },
 };
 
 export const env_Vars = new Env_Vars(envArg);
@@ -29,11 +33,12 @@ export const env_Vars = new Env_Vars(envArg);
 let salt: Salt;
 let logins: Login;
 let games: Game;
+let encryptor: Encryption;
 
 export async function init() {
   try {
     // for migrations
-    const { HOST, PORT, DATABASE_NAME, USER, PASSWORD } = env_Vars.Db;
+    const { HOST, PORT, DATABASE_NAME, USER, PASSWORD } = env_Vars.db;
 
     const migrationClient = drizzle(
       postgres({
@@ -55,6 +60,7 @@ export async function init() {
     salt = new Salt();
     logins = new Login();
     games = new Game(env_Vars.infura.INFURA_ENDPOINT);
+    encryptor = new Encryption(env_Vars.socket.SOCKET_KEY);
   } catch (err) {
     console.error("migrations failed:", err);
     throw err;
@@ -64,6 +70,6 @@ export async function init() {
 // disable init while generating migrations
 if (!(process.env.NODE_ENV === "migration")) init();
 
-const drizzleDb = getDrizzleDb(env_Vars.Db);
+const drizzleDb = getDrizzleDb(env_Vars.db);
 
-export { salt, logins, games, drizzleDb };
+export { salt, logins, games, encryptor, drizzleDb };

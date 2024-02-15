@@ -10,7 +10,7 @@ const getQueryClient = ({
   DATABASE_NAME,
   USER,
   PASSWORD,
-}: (typeof env_Vars)["Db"]) =>
+}: (typeof env_Vars)["db"]) =>
   postgres({
     max: 10,
     host: HOST,
@@ -20,7 +20,7 @@ const getQueryClient = ({
     password: PASSWORD,
   });
 
-export const getDrizzleDb = (db: (typeof env_Vars)["Db"]) =>
+export const getDrizzleDb = (db: (typeof env_Vars)["db"]) =>
   drizzle(getQueryClient(db), {
     schema: completeSchema,
   });

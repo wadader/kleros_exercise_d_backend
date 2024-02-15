@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { isAddressEqual, isHash } from "viem";
-import { Hash, isEthAddress } from "../types/web3";
-import { games } from "../config/init";
+import { EthAddress, Hash, isEthAddress } from "../../types/web3";
+import { games } from "../../config/init";
 
 export const createGame = async (req: Request, res: Response) => {
   try {
@@ -11,14 +11,14 @@ export const createGame = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "request not formatted correctly" });
 
-    const { gameCreationTxHash, salt } = createGameReqBody;
+    const { gameCreationTxHash, salt, userAddress } = createGameReqBody;
 
     const txReceipt = await games.publicClient.waitForTransactionReceipt({
       hash: gameCreationTxHash,
     });
 
     console.log("txReceipt:", txReceipt);
-    if (!isAddressEqual(txReceipt.from, req.body.userAddress))
+    if (!isAddressEqual(txReceipt.from, userAddress))
       return res
         .status(401)
         .json({ message: "contract creator is not sender" });
@@ -28,9 +28,16 @@ export const createGame = async (req: Request, res: Response) => {
     if (!createdGameAddress || !isEthAddress(createdGameAddress))
       return res.status(400).json({ message: "contract not created" });
 
-    await games.insertGame(gameCreationTxHash, salt, createdGameAddress);
+    const creatorIdentifier = await games.insertGameAndGetCreatorIdentifier(
+      gameCreationTxHash,
+      salt,
+      createdGameAddress,
+      userAddress
+    );
 
-    return res.status(201).json({ ok: true, message: "game record saved" });
+    return res
+      .status(201)
+      .json({ ok: true, message: "game record saved", creatorIdentifier });
   } catch (e) {
     console.error("createGame-error:", e);
     return res.status(500);
@@ -40,6 +47,7 @@ export const createGame = async (req: Request, res: Response) => {
 interface CreateGameReqBody {
   gameCreationTxHash: Hash;
   salt: string;
+  userAddress: EthAddress; // this comes from the auth middleware
 }
 
 function isCreateGameReqBody(_obj: unknown): _obj is CreateGameReqBody {
@@ -52,7 +60,9 @@ function isCreateGameReqBody(_obj: unknown): _obj is CreateGameReqBody {
     typeof _obj.gameCreationTxHash === "string" &&
     isHash(_obj.gameCreationTxHash) &&
     "salt" in _obj &&
-    typeof _obj.salt === "string"
+    typeof _obj.salt === "string" &&
+    "userAddress" in _obj &&
+    isEthAddress(_obj.userAddress)
   )
     return true;
   return false;

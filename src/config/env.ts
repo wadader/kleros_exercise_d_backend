@@ -4,6 +4,7 @@ import {
   DbEnv,
   EnvClassConstructorArgs,
   InfuraEnv,
+  SocketEnv,
 } from "./types";
 import dotenv from "dotenv";
 
@@ -30,19 +31,23 @@ export class Env_Vars {
     if (!envArgs.dbEnv.DATABASE_NAME)
       throw "DB_DATABASE_NAME not defined in env";
     if (!envArgs.dbEnv.PORT) throw "DB_PORT not defined in env";
-    this.Db = {
+    this.db = {
       HOST: envArgs.dbEnv.HOST,
       USER: envArgs.dbEnv.USER,
       PASSWORD: envArgs.dbEnv.PASSWORD,
       DATABASE_NAME: envArgs.dbEnv.DATABASE_NAME,
       PORT: Number(envArgs.dbEnv.PORT),
     };
-    if (isNaN(this.Db.PORT)) throw "DB_PORT does not seem like a valid number";
+    if (isNaN(this.db.PORT)) throw "DB_PORT does not seem like a valid number";
 
+    if (!envArgs.socketEnv.SOCKET_KEY) throw "SOCKET_KEY not defined in env";
+    this.socket = {
+      SOCKET_KEY: envArgs.socketEnv.SOCKET_KEY,
+    };
   }
 
   readonly infura: InfuraEnv;
   readonly app: AppEnv;
-  readonly Db: DbEnv;
-
+  readonly db: DbEnv;
+  readonly socket: SocketEnv;
 }

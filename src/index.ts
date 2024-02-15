@@ -8,6 +8,7 @@ import { env_Vars } from "./config/init";
 import { siweRouter } from "./routes/auth/siwe";
 import { saltRouter } from "./routes/salt";
 import { gameRouter } from "./routes/games";
+import { GameIo } from "./controllers/games/socket/socket";
 
 const app = express();
 
@@ -57,6 +58,11 @@ app.get("*", function (_req: Request, res: Response) {
 // railway provides this PORT directly
 const PORT = process.env.PORT || env_Vars.app.BACKEND_PORT;
 
-app.listen(PORT, () => {
+let gameIo: GameIo;
+
+const express_Server = app.listen(PORT, () => {
   console.log(`Server listening on ${PORT} - rpslz`);
+  gameIo = new GameIo(express_Server);
 });
+
+export { gameIo };
