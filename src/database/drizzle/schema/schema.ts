@@ -22,10 +22,12 @@ export const rpslzGames = pgTable("rpslz_games", {
   })
     .notNull()
     .unique(),
-  salt_id: integer("salt_id")
+  saltId: integer("salt_id")
     .references(() => salts.id)
     .notNull()
     .unique(),
+  // we could fetch joinerAddress from the blockchain directly, but as it is immutable, we save time/bandwidth by storing it here
+  joinerAddress: char("joiner_address", { length: 42 }).notNull(),
   didCreatorTimeout: boolean("did_creator_timeout").notNull().default(false),
   didJoinerTimeout: boolean("did_joiner_timeout").notNull().default(false),
   winnerAddress: char("winner_address", { length: 42 }),

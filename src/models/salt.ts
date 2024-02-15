@@ -16,10 +16,19 @@ export class Salt {
     const saltArr = await drizzleDb
       .select({ saltForGame: salts.salt })
       .from(salts)
-      .innerJoin(rpslzGames, eq(rpslzGames.salt_id, salts.id))
+      .innerJoin(rpslzGames, eq(rpslzGames.saltId, salts.id))
       .where(eq(rpslzGames.createdContractAddress, contractAddress));
 
     if (saltArr.length) return saltArr[0]?.saltForGame;
+  };
+
+  getSaltId = async (salt: string): Promise<number | undefined> => {
+    const saltArr = await drizzleDb
+      .select({ saltId: salts.id })
+      .from(salts)
+      .where(eq(salts.salt, salt));
+
+    if (saltArr.length) return saltArr[0]?.saltId;
   };
 
   generateSaltForUser = async (userAddress: EthAddress) => {

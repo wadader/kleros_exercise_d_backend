@@ -5,12 +5,13 @@ export const verifyUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.session.siwe)
+  if (!req.session.siwe) {
+    console.error("not auth verifyUser:", req.session);
     return res.status(401).json({
       message: "Not signed in.",
     });
+  }
 
   req.body.userAddress = req.session.siwe.data.address;
-
   next();
 };

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS "rpslz_games" (
 	"tx_hash" char(66) PRIMARY KEY NOT NULL,
 	"created_contract_address" char(42) NOT NULL,
 	"salt_id" integer NOT NULL,
+	"joiner_address" char(42) NOT NULL,
 	"did_creator_timeout" boolean DEFAULT false NOT NULL,
 	"did_joiner_timeout" boolean DEFAULT false NOT NULL,
 	"winner_address" char(42),

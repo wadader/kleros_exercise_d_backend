@@ -5,7 +5,11 @@ export function isEthAddress(value: unknown): value is EthAddress {
   return isString && /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
-export type Hash = `0x${string}`;
+export type Hash = `0x${string & { length: 64 }}`;
+
+export function isHash(value: string): value is Hash {
+  return /^0x[a-fA-F0-9]{64}$/.test(value);
+}
 
 export function areEthereumHashesEqual(hash1: string, hash2: string): boolean {
   const normalizedHash1 = hash1.startsWith("0x")

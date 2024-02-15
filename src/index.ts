@@ -7,6 +7,7 @@ import Session from "express-session";
 import { env_Vars } from "./config/init";
 import { siweRouter } from "./routes/auth/siwe";
 import { saltRouter } from "./routes/salt";
+import { gameRouter } from "./routes/games";
 
 const app = express();
 
@@ -45,7 +46,7 @@ app.use(
 
 app.use("/api/v1/auth", siweRouter);
 app.use("/api/v1/salt", saltRouter);
-
+app.use("/api/v1/game", gameRouter);
 
 app.get("*", function (_req: Request, res: Response) {
   console.log("_req.params", _req.params);

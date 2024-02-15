@@ -6,6 +6,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { getDrizzleDb } from "../database/database";
 import { Salt } from "../models/salt";
 import { Login } from "../middleware/authentication/login";
+import { Game } from "../models/games";
 
 const envArg: EnvClassConstructorArgs = {
   infuraEnv: {
@@ -27,6 +28,7 @@ export const env_Vars = new Env_Vars(envArg);
 
 let salt: Salt;
 let logins: Login;
+let games: Game;
 
 export async function init() {
   try {
@@ -52,15 +54,16 @@ export async function init() {
 
     salt = new Salt();
     logins = new Login();
+    games = new Game(env_Vars.infura.INFURA_ENDPOINT);
   } catch (err) {
     console.error("migrations failed:", err);
     throw err;
   }
 }
 
-// comment out when generating migrations
-init();
+// disable init while generating migrations
+if (!(process.env.NODE_ENV === "migration")) init();
 
 const drizzleDb = getDrizzleDb(env_Vars.Db);
 
-export { salt, logins, drizzleDb };
+export { salt, logins, games, drizzleDb };

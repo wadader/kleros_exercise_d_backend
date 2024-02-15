@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "54f32e21-9da7-4f1b-afdd-724c5a709b35",
+  "id": "eec1d428-6f58-40b4-9d54-283f7f2ce589",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "logins": {
@@ -39,6 +39,12 @@
         "salt_id": {
           "name": "salt_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "joiner_address": {
+          "name": "joiner_address",
+          "type": "char(42)",
           "primaryKey": false,
           "notNull": true
         },

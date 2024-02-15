@@ -3,6 +3,12 @@ import { drizzleDb } from "../../config/init";
 import { logins } from "../../database/drizzle/schema/schema";
 
 export class Login {
+  constructor() {
+    console.log(
+      "constructing login class- this message should only appear once"
+    );
+  }
+
   readonly saveNonce = async (_nonce: string) => {
     await drizzleDb.insert(logins).values({ nonce: _nonce });
   };
