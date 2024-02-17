@@ -4,7 +4,7 @@ import { rpslzGames } from "../database/drizzle/schema/schema";
 import { RPS_ARTIFACT } from "../artifacts/RPS";
 import { getPublicClient } from "../config/ethClients";
 import { PublicClient } from "viem";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export class Game {
   constructor(infuraEndpoint: string) {
@@ -58,9 +58,7 @@ export class Game {
       .where(
         and(
           eq(rpslzGames.joinerAddress, joinerAddress),
-          eq(rpslzGames.didCreatorTimeout, false),
-          eq(rpslzGames.didJoinerTimeout, false),
-          isNull(rpslzGames.winnerAddress)
+          eq(rpslzGames.isGameOver, false)
         )
       );
 

@@ -28,9 +28,7 @@ export const rpslzGames = pgTable("rpslz_games", {
     .unique(),
   // we could fetch joinerAddress from the blockchain directly, but as it is immutable, we save time/bandwidth by storing it here
   joinerAddress: char("joiner_address", { length: 42 }).notNull(),
-  didCreatorTimeout: boolean("did_creator_timeout").notNull().default(false),
-  didJoinerTimeout: boolean("did_joiner_timeout").notNull().default(false),
-  winnerAddress: char("winner_address", { length: 42 }),
+  isGameOver: boolean("is_game_over").notNull().default(false),
 });
 
 export const logins = pgTable("logins", {
