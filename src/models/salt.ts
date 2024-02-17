@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import { EthAddress } from "../types/web3";
 import { drizzleDb } from "../config/init";
 import { rpslzGames, salts } from "../database/drizzle/schema/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export class Salt {
   constructor() {
@@ -11,13 +11,19 @@ export class Salt {
     );
   }
   getSaltForGame = async (
-    contractAddress: EthAddress
+    contractAddress: EthAddress,
+    creatorAddress: EthAddress
   ): Promise<string | undefined> => {
     const saltArr = await drizzleDb
       .select({ saltForGame: salts.salt })
       .from(salts)
       .innerJoin(rpslzGames, eq(rpslzGames.saltId, salts.id))
-      .where(eq(rpslzGames.createdContractAddress, contractAddress));
+      .where(
+        and(
+          eq(rpslzGames.createdContractAddress, contractAddress),
+          eq(salts.requestedByAddress, creatorAddress)
+        )
+      );
 
     if (saltArr.length) return saltArr[0]?.saltForGame;
   };

@@ -4,6 +4,7 @@ import { rpslzGames } from "../database/drizzle/schema/schema";
 import { RPS_ARTIFACT } from "../artifacts/RPS";
 import { getPublicClient } from "../config/ethClients";
 import { PublicClient } from "viem";
+import { and, eq, isNull } from "drizzle-orm";
 
 export class Game {
   constructor(infuraEndpoint: string) {
@@ -37,17 +38,33 @@ export class Game {
       });
 
       const creatorIdentifier = this.generateIdentifier(
-        gameCreationTxHash,
+        createdGameAddress,
         creatorAddress
       );
 
-      this.saveCreatorIdentifier(gameCreationTxHash, creatorIdentifier);
+      this.saveCreatorIdentifier(createdGameAddress, creatorIdentifier);
 
       return creatorIdentifier;
     } catch (e) {
       console.error("insertGame:", e);
       throw e;
     }
+  };
+
+  getGamesForJoinerAddress = async (joinerAddress: EthAddress) => {
+    const gamesForJoinerAddress = await drizzleDb
+      .select({ contractAddress: rpslzGames.createdContractAddress })
+      .from(rpslzGames)
+      .where(
+        and(
+          eq(rpslzGames.joinerAddress, joinerAddress),
+          eq(rpslzGames.didCreatorTimeout, false),
+          eq(rpslzGames.didJoinerTimeout, false),
+          isNull(rpslzGames.winnerAddress)
+        )
+      );
+
+    return gamesForJoinerAddress;
   };
 
   private getContractJoiner = async (contractAddress: EthAddress) => {
@@ -59,7 +76,7 @@ export class Game {
   };
 
   private saveCreatorIdentifier = (
-    gameCreationTxHash: Hash,
+    contractAddress: EthAddress,
     creatorIdentifier: string
   ) => {
     const gameIdentifier: GameIdentifiers = {
@@ -67,17 +84,20 @@ export class Game {
       joinerIdentifier: undefined,
     };
 
-    this.gameIdentifers.set(gameCreationTxHash, gameIdentifier);
+    this.gameIdentifers.set(contractAddress, gameIdentifier);
   };
 
-  private generateIdentifier = (txHash: Hash, address: EthAddress): string => {
-    const gameIdentifierString = `${txHash}_${address}`;
+  private generateIdentifier = (
+    contractAddress: EthAddress,
+    playerAddress: EthAddress
+  ): string => {
+    const gameIdentifierString = `${contractAddress}_${playerAddress}`;
     return encryptor.encrypt(Buffer.from(gameIdentifierString));
   };
 
   publicClient: PublicClient;
 
-  gameIdentifers = new Map<Hash, GameIdentifiers>();
+  gameIdentifers = new Map<EthAddress, GameIdentifiers>();
 }
 
 interface GameIdentifiers {

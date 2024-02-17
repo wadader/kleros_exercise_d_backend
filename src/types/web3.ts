@@ -7,7 +7,8 @@ export function isEthAddress(value: unknown): value is EthAddress {
 
 export type Hash = `0x${string & { length: 64 }}`;
 
-export function isHash(value: string): value is Hash {
+export function isHash(value: unknown): value is Hash {
+  if (!(typeof value === "string")) return false;
   return /^0x[a-fA-F0-9]{64}$/.test(value);
 }
 

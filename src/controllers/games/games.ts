@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
-import { isAddressEqual, isHash } from "viem";
-import { EthAddress, Hash, isEthAddress } from "../../types/web3";
+import { isAddressEqual } from "viem";
+import { isEthAddress } from "../../types/web3";
 import { games } from "../../config/init";
+import { isCreateGameReqBody, isJoinGameReqBody } from "./types";
+import { RPS_ARTIFACT } from "../../artifacts/RPS";
+import { gameIo } from "../..";
 
 export const createGame = async (req: Request, res: Response) => {
   try {
@@ -17,7 +20,6 @@ export const createGame = async (req: Request, res: Response) => {
       hash: gameCreationTxHash,
     });
 
-    console.log("txReceipt:", txReceipt);
     if (!isAddressEqual(txReceipt.from, userAddress))
       return res
         .status(401)
@@ -37,33 +39,74 @@ export const createGame = async (req: Request, res: Response) => {
 
     return res
       .status(201)
-      .json({ ok: true, message: "game record saved", creatorIdentifier });
+      .json({ ok: true, message: "game record saved", creatorIdentifier,createdGameAddress });
   } catch (e) {
     console.error("createGame-error:", e);
     return res.status(500);
   }
 };
 
-interface CreateGameReqBody {
-  gameCreationTxHash: Hash;
-  salt: string;
-  userAddress: EthAddress; // this comes from the auth middleware
-}
+export const joinGame = async (req: Request, res: Response) => {
+  try {
+    const joinGameReqBody = req.body;
+    if (!isJoinGameReqBody(joinGameReqBody))
+      return res
+        .status(400)
+        .json({ message: "request not formatted correctly" });
 
-function isCreateGameReqBody(_obj: unknown): _obj is CreateGameReqBody {
-  if (typeof _obj !== "object" || _obj === null) {
-    return false;
+    const {
+      userAddress,
+      contractAddress,
+      playGameTxHash: txHash,
+    } = joinGameReqBody;
+
+    const txDetails = await games.publicClient.getTransaction({
+      hash: txHash,
+    });
+
+    const { from, to } = txDetails;
+
+    const joinerAddress = await games.publicClient.readContract({
+      address: contractAddress,
+      abi: RPS_ARTIFACT.abi,
+      functionName: "j2",
+    });
+
+    if (!isAddressEqual(joinerAddress, userAddress))
+      return res
+        .status(401)
+        .json({ message: "joiner address cannot play this contract" });
+
+    if (from !== userAddress && to !== contractAddress)
+      return res.status(400).json({ message: "incorrect tx sent" });
+
+    res.status(200).json({ ok: true, message: "joiner played game" });
+
+    const identifiers = games.gameIdentifers.get(contractAddress);
+
+    if (identifiers)
+      gameIo.gameServer
+        .to(identifiers.creatorIdentifier)
+        .emit("game:joiner-played");
+  } catch (e) {
+    console.error("createGame-error:", e);
+    return res.status(500);
   }
+};
 
-  if (
-    "gameCreationTxHash" in _obj &&
-    typeof _obj.gameCreationTxHash === "string" &&
-    isHash(_obj.gameCreationTxHash) &&
-    "salt" in _obj &&
-    typeof _obj.salt === "string" &&
-    "userAddress" in _obj &&
-    isEthAddress(_obj.userAddress)
-  )
-    return true;
-  return false;
-}
+export const getGamesForJoiner = async (req: Request, res: Response) => {
+  try {
+    const joinerAddress = req.query.joinerAddress;
+    if (!isEthAddress(joinerAddress))
+      return res
+        .status(400)
+        .json({ message: "joinerAddress not formatted correctly" });
+
+    const gamesForJoiner = await games.getGamesForJoinerAddress(joinerAddress);
+
+    return res.status(200).json({ gamesForJoiner });
+  } catch (e) {
+    console.error("createGame-error:", e);
+    return res.status(500);
+  }
+};
