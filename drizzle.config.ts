@@ -6,11 +6,11 @@ export default {
   out: "./src/database/drizzle/schema/generated",
   driver: "pg",
   dbCredentials: {
-    user: env_Vars.Db.USER,
-    password: env_Vars.Db.PASSWORD,
-    host: env_Vars.Db.HOST,
-    port: env_Vars.Db.PORT,
-    database: env_Vars.Db.DATABASE_NAME,
+    user: env_Vars.db.USER,
+    password: env_Vars.db.PASSWORD,
+    host: env_Vars.db.HOST,
+    port: env_Vars.db.PORT,
+    database: env_Vars.db.DATABASE_NAME,
   },
   breakpoints: true,
 } satisfies Config;
