@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
 import { isAddressEqual } from "viem";
-import { isEthAddress } from "../../types/web3";
+import { EthAddress, isEthAddress } from "../../types/web3";
 import { games } from "../../config/init";
-import { isCreateGameReqBody, isJoinGameReqBody } from "./types";
+import {
+  isCreateGameReqBody,
+  // isGameOverReqBody,
+  isJoinGameReqBody,
+} from "./types";
 import { RPS_ARTIFACT } from "../../artifacts/RPS";
 import { gameIo } from "../..";
 
@@ -30,6 +34,13 @@ export const createGame = async (req: Request, res: Response) => {
     if (!createdGameAddress || !isEthAddress(createdGameAddress))
       return res.status(400).json({ message: "contract not created" });
 
+    const isFetchedByteCodeCorrect = await getIsFetchedByteCodeCorrect(
+      createdGameAddress
+    );
+
+    if (!isFetchedByteCodeCorrect)
+      return res.status(400).json({ message: "incorrect contract created" });
+    
     const creatorIdentifier = await games.insertGameAndGetCreatorIdentifier(
       gameCreationTxHash,
       salt,
@@ -39,15 +50,13 @@ export const createGame = async (req: Request, res: Response) => {
 
     const lastAction = await games.getContractLastAction(createdGameAddress);
 
-    return res
-      .status(201)
-      .json({
-        ok: true,
-        message: "game record saved",
-        creatorIdentifier,
-        createdGameAddress,
-        lastAction,
-      });
+    return res.status(201).json({
+      ok: true,
+      message: "game record saved",
+      creatorIdentifier,
+      createdGameAddress,
+      lastAction,
+    });
   } catch (e) {
     console.error("createGame-error:", e);
     return res.status(500);
@@ -118,3 +127,13 @@ export const getGamesForJoiner = async (req: Request, res: Response) => {
     return res.status(500);
   }
 };
+
+async function getIsFetchedByteCodeCorrect(
+  contractAddr: EthAddress
+): Promise<boolean> {
+  const fetchedBytecode = await games.publicClient.getBytecode({
+    address: contractAddr,
+  });
+  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode) return true;
+  return false;
+}
