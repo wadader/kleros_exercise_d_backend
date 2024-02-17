@@ -67,6 +67,13 @@ export class Game {
     return gamesForJoinerAddress;
   };
 
+  getContractLastAction = async (contractAddress: EthAddress) => {
+    return await this.publicClient.readContract({
+      address: contractAddress,
+      abi: RPS_ARTIFACT.abi,
+      functionName: "lastAction",
+    });
+  };
   private getContractJoiner = async (contractAddress: EthAddress) => {
     return await this.publicClient.readContract({
       address: contractAddress,

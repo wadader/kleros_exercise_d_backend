@@ -37,9 +37,17 @@ export const createGame = async (req: Request, res: Response) => {
       userAddress
     );
 
+    const lastAction = await games.getContractLastAction(createdGameAddress);
+
     return res
       .status(201)
-      .json({ ok: true, message: "game record saved", creatorIdentifier,createdGameAddress });
+      .json({
+        ok: true,
+        message: "game record saved",
+        creatorIdentifier,
+        createdGameAddress,
+        lastAction,
+      });
   } catch (e) {
     console.error("createGame-error:", e);
     return res.status(500);
