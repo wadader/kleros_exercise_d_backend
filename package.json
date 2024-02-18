@@ -12,6 +12,7 @@
     "build": "npx tsc",
     "stage": "NODE_ENV=staging node dist/index.js",
     "start": "NODE_ENV=prod node dist/index.js",
+    "inspect": "NODE_ENV=dev node --inspect dist/index.js",
     "drizzle-generate": "NODE_ENV=migration yarn drizzle-kit generate:pg"
   },
   "dependencies": {
@@ -33,5 +34,9 @@
     "@types/node": "^18.7.16",
     "drizzle-kit": "^0.19.13",
     "typescript": "^5.0.4"
+  },
+  "engines": {
+    "node": "^18.15",
+    "npm": "^9.5"
   }
 }
