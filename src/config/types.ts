@@ -18,6 +18,10 @@ export interface SocketEnv {
   SOCKET_KEY: string;
 }
 
+export interface SiweEnv {
+  SIWE_SESSION_SECRET: string;
+}
+
 type OptionalStringProperties<T> = {
   [K in keyof T]: string | undefined;
 };
@@ -27,4 +31,5 @@ export interface EnvClassConstructorArgs {
   appEnv: OptionalStringProperties<AppEnv>;
   dbEnv: OptionalStringProperties<DbEnv>;
   socketEnv: OptionalStringProperties<SocketEnv>;
+  siweEnv: OptionalStringProperties<SiweEnv>;
 }
