@@ -16,6 +16,8 @@ import {
 import { RPS_ARTIFACT } from "../../artifacts/RPS";
 import { gameIo } from "../..";
 
+// side-effect: contract created without this e.g: through etherscan etc. cannot be used.
+// with more time, add a feature for submitting create-contract-transactions which has not initially gone through this
 export const createGame = async (req: Request, res: Response) => {
   try {
     const createGameReqBody = req.body;
@@ -220,6 +222,8 @@ async function creatorHasTimedOut(contractAddress: EthAddress, res: Response) {
   gameIo.gameServer
     .to(identifiers.creatorIdentifier)
     .emit("game:joiner-creatorTimedOut");
+
+  games.gameIdentifers.delete(contractAddress);
 }
 
 async function validateCreatorCanTimeOut(
@@ -281,7 +285,10 @@ async function endGameAsCreator(
       joinerHasTimedOut: true,
       message: "game over",
     };
-    return res.status(200).json(joinerTimedOutResponse);
+
+    res.status(200).json(joinerTimedOutResponse);
+
+    games.gameIdentifers.delete(contractAddress);
   } else {
     solveGame(gameOverReqBody, c2, res);
   }
@@ -371,6 +378,8 @@ async function solveGame(
   gameIo.gameServer
     .to(identifiers.joinerIdentifier)
     .emit("game:creator-solved", winner, contractAddress);
+
+  games.gameIdentifers.delete(contractAddress);
 }
 
 async function getIsFetchedByteCodeCorrect(
@@ -384,8 +393,6 @@ async function getIsFetchedByteCodeCorrect(
   return false;
 }
 
-// side-effect: contract created without this e.g: through etherscan etc. cannot be used.
-// with more time, add a feature for submitting create-contract-transactions which has not initially gone through this
 async function validateJoinerAndReturnCreatorIdentifier(
   playGameTxHash: EthHash,
   contractAddress: EthAddress,
