@@ -1,11 +1,17 @@
 import { Request, Response } from "express";
-import { isAddressEqual } from "viem";
-import { EthAddress, isEthAddress } from "../../types/web3";
+import { encodePacked, isAddressEqual, keccak256 } from "viem";
+import { EthAddress, EthHash, isEthAddress } from "../../types/web3";
 import { games } from "../../config/init";
 import {
+  GameOverReqBody,
+  JoinerTimedOutResponse,
+  Moves,
+  SolveGameResponse,
+  Winner,
   isCreateGameReqBody,
-  // isGameOverReqBody,
+  isGameOverReqBody,
   isJoinGameReqBody,
+  isSolveGameReqBody,
 } from "./types";
 import { RPS_ARTIFACT } from "../../artifacts/RPS";
 import { gameIo } from "../..";
@@ -40,7 +46,7 @@ export const createGame = async (req: Request, res: Response) => {
 
     if (!isFetchedByteCodeCorrect)
       return res.status(400).json({ message: "incorrect contract created" });
-    
+
     const creatorIdentifier = await games.insertGameAndGetCreatorIdentifier(
       gameCreationTxHash,
       salt,
@@ -71,42 +77,39 @@ export const joinGame = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "request not formatted correctly" });
 
-    const {
-      userAddress,
+    const { userAddress, contractAddress, playGameTxHash } = joinGameReqBody;
+
+    const creatorIdentifier = await validateJoinerAndReturnCreatorIdentifier(
+      playGameTxHash,
       contractAddress,
-      playGameTxHash: txHash,
-    } = joinGameReqBody;
+      userAddress,
+      res
+    );
 
-    const txDetails = await games.publicClient.getTransaction({
-      hash: txHash,
+    if (!creatorIdentifier) return;
+
+    const joinerIdentifier = games.saveAndReturnJoinerIdentifier(
+      contractAddress,
+      userAddress
+    );
+
+    games.gameIdentifers.set(contractAddress, {
+      creatorIdentifier,
+      joinerIdentifier,
     });
 
-    const { from, to } = txDetails;
+    const lastAction = await games.getContractLastAction(contractAddress);
 
-    const joinerAddress = await games.publicClient.readContract({
-      address: contractAddress,
-      abi: RPS_ARTIFACT.abi,
-      functionName: "j2",
+    gameIo.gameServer.to(creatorIdentifier).emit("game:joiner-played");
+
+    res.status(200).json({
+      ok: true,
+      message: "joiner played game",
+      lastAction,
+      joinerIdentifier,
     });
-
-    if (!isAddressEqual(joinerAddress, userAddress))
-      return res
-        .status(401)
-        .json({ message: "joiner address cannot play this contract" });
-
-    if (from !== userAddress && to !== contractAddress)
-      return res.status(400).json({ message: "incorrect tx sent" });
-
-    res.status(200).json({ ok: true, message: "joiner played game" });
-
-    const identifiers = games.gameIdentifers.get(contractAddress);
-
-    if (identifiers)
-      gameIo.gameServer
-        .to(identifiers.creatorIdentifier)
-        .emit("game:joiner-played");
   } catch (e) {
-    console.error("createGame-error:", e);
+    console.error("joinGame-error:", e);
     return res.status(500);
   }
 };
@@ -123,10 +126,252 @@ export const getGamesForJoiner = async (req: Request, res: Response) => {
 
     return res.status(200).json({ gamesForJoiner });
   } catch (e) {
+    console.error("getGamesForJoiner-error:", e);
+    return res.status(500);
+  }
+};
+
+export const endGame = async (req: Request, res: Response) => {
+  try {
+    const gameOverReqBody = req.body;
+
+    if (!isGameOverReqBody(gameOverReqBody))
+      return res
+        .status(400)
+        .json({ message: "request not formatted correctly" });
+
+    const { userAddress, contractAddress, hasCreatorTimedOut } =
+      gameOverReqBody;
+
+    const identifiers = games.gameIdentifers.get(contractAddress);
+
+    if (identifiers === undefined)
+      return res.status(400).json({ message: "no corresponding contract" });
+
+    const isTxToSmartContract = await getIsTxToSmartContract(
+      gameOverReqBody,
+      res
+    );
+
+    if (!isTxToSmartContract) return false;
+
+    const joinerAddressPromise = games.getJoinerAddressForGame(contractAddress);
+    const contractCreatorAddressPromise =
+      games.getContractCreator(contractAddress);
+
+    const [joinerAddress, contractCreator] = await Promise.all([
+      joinerAddressPromise,
+      contractCreatorAddressPromise,
+    ]);
+
+    if (
+      joinerAddress !== null &&
+      isAddressEqual(userAddress, joinerAddress) &&
+      hasCreatorTimedOut
+    ) {
+      return creatorHasTimedOut(contractAddress, res);
+    }
+
+    if (isAddressEqual(userAddress, contractCreator)) {
+      return endGameAsCreator(gameOverReqBody, res);
+    }
+  } catch (e) {
     console.error("createGame-error:", e);
     return res.status(500);
   }
 };
+
+async function getIsTxToSmartContract(
+  gameOverReqBody: GameOverReqBody,
+  res: Response
+): Promise<boolean> {
+  const { userAddress, contractAddress, gameEndTxHash } = gameOverReqBody;
+
+  const txDetails = await games.publicClient.getTransaction({
+    hash: gameEndTxHash,
+  });
+
+  const { from, to } = txDetails;
+
+  if (
+    !isAddressEqual(from, userAddress) ||
+    to === null ||
+    !isAddressEqual(to, contractAddress)
+  ) {
+    res.status(400).json({ message: "incorrect tx sent" });
+    return false;
+  }
+
+  return true;
+}
+
+async function creatorHasTimedOut(contractAddress: EthAddress, res: Response) {
+  const identifiers = games.gameIdentifers.get(contractAddress);
+  if (identifiers === undefined) throw "game not created";
+
+  const canTimeOut = await validateCreatorCanTimeOut(contractAddress, res);
+
+  if (!canTimeOut) return;
+
+  await games.gameOver(contractAddress);
+
+  res.status(200).json({ creatorHasTimedOut: true, message: "game over" });
+
+  gameIo.gameServer
+    .to(identifiers.creatorIdentifier)
+    .emit("game:joiner-creatorTimedOut");
+}
+
+async function validateCreatorCanTimeOut(
+  contractAddress: EthAddress,
+  res: Response
+): Promise<boolean> {
+  const c2Promise = games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "c2",
+  });
+
+  const lastActionPromise = games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "lastAction",
+  });
+
+  const [c2, lastAction] = await Promise.all([c2Promise, lastActionPromise]);
+  if (c2 === Moves.Null) {
+    res.status(400).json({ message: "joiner hasn't played yet" });
+    return false;
+  }
+  const timeNowInSeconds = Date.now() / 1000;
+
+  const hasTimeoutTimePassed =
+    timeNowInSeconds > Number(lastAction) + CONTRACT_TIMEOUT + bufferTime;
+
+  if (!hasTimeoutTimePassed) {
+    res.status(400).json({
+      message: "cannot timeout yet",
+    });
+    return false;
+  }
+
+  return true;
+}
+
+async function endGameAsCreator(
+  gameOverReqBody: GameOverReqBody,
+  res: Response
+) {
+  const { contractAddress } = gameOverReqBody;
+  const c2 = await games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "c2",
+  });
+
+  if (c2 === Moves.Null) {
+    const canTimeOut = await validateJoinerCanTimeOut(contractAddress, res);
+    if (!canTimeOut) return;
+
+    await games.gameOver(contractAddress);
+
+    // cannot inform joiner via sockets as they have not interacted with the backend yet
+
+    const joinerTimedOutResponse: JoinerTimedOutResponse = {
+      joinerHasTimedOut: true,
+      message: "game over",
+    };
+    return res.status(200).json(joinerTimedOutResponse);
+  } else {
+    solveGame(gameOverReqBody, c2, res);
+  }
+}
+
+async function validateJoinerCanTimeOut(
+  contractAddress: EthAddress,
+  res: Response
+): Promise<boolean> {
+  const lastAction = await games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "lastAction",
+  });
+  const timeNowInSeconds = Date.now() / 1000;
+
+  const hasTimeoutTimePassed =
+    timeNowInSeconds > Number(lastAction) + CONTRACT_TIMEOUT + bufferTime;
+
+  if (!hasTimeoutTimePassed) {
+    res.status(400).json({ message: "cannot timeout yet" });
+    return false;
+  }
+
+  return true;
+}
+
+async function solveGame(
+  gameOverReqBody: GameOverReqBody,
+  c2: number,
+  res: Response
+) {
+  if (!isSolveGameReqBody(gameOverReqBody))
+    return res
+      .status(400)
+      .json({ message: "solve game request not properly formatter" });
+
+  const {
+    contractAddress,
+    creatorMove,
+    userAddress: creatorAddress,
+  } = gameOverReqBody;
+
+  const identifiers = games.gameIdentifers.get(contractAddress);
+  if (!identifiers || !identifiers.joinerIdentifier) {
+    throw "player or joiner not found";
+  }
+
+  const c1Hash = await games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "c1Hash",
+  });
+
+  const { move, salt } = creatorMove;
+
+  const hashedMove = keccak256(
+    encodePacked(["uint8", "uint256"], [move, BigInt(salt)])
+  );
+
+  if (c1Hash !== hashedMove)
+    return res
+      .status(400)
+      .json({ message: "hash of creator doesn't match up" });
+
+  const winner = win(move, c2);
+
+  await games.gameOver(contractAddress);
+
+  let winnerAddress: EthAddress | undefined = undefined;
+
+  if (winner === "creator") winnerAddress = creatorAddress;
+  else if (winner === "joiner") {
+    const joinerAddress = await games.getJoinerAddressForGame(contractAddress);
+    if (joinerAddress && isEthAddress(joinerAddress))
+      winnerAddress = joinerAddress;
+  }
+
+  const solveGameResponse: SolveGameResponse = {
+    solved: true,
+    winner,
+    winnerAddress,
+  };
+
+  res.status(200).json(solveGameResponse);
+
+  gameIo.gameServer
+    .to(identifiers.joinerIdentifier)
+    .emit("game:creator-solved", winner, contractAddress);
+}
 
 async function getIsFetchedByteCodeCorrect(
   contractAddr: EthAddress
@@ -134,6 +379,96 @@ async function getIsFetchedByteCodeCorrect(
   const fetchedBytecode = await games.publicClient.getBytecode({
     address: contractAddr,
   });
-  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode) return true;
+  if (fetchedBytecode === RPS_ARTIFACT.fifteenSecondDeployedVytecode)
+    return true;
   return false;
 }
+
+// side-effect: contract created without this e.g: through etherscan etc. cannot be used.
+// with more time, add a feature for submitting create-contract-transactions which has not initially gone through this
+async function validateJoinerAndReturnCreatorIdentifier(
+  playGameTxHash: EthHash,
+  contractAddress: EthAddress,
+  userAddress: EthAddress,
+  res: Response
+): Promise<false | string> {
+  // check identifiers first - it's fast and cheap
+  const identifiers = games.gameIdentifers.get(contractAddress);
+
+  if (identifiers === undefined) {
+    res.status(400).json({ message: "no corresponding contract" });
+    return false;
+  }
+
+  // then validate blockchain details
+  const txDetailsPromise = games.publicClient.getTransaction({
+    hash: playGameTxHash,
+  });
+
+  const joinerMovePromise = games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "c2",
+  });
+
+  const joinerAddressPromise = games.publicClient.readContract({
+    address: contractAddress,
+    abi: RPS_ARTIFACT.abi,
+    functionName: "j2",
+  });
+
+  const [txDetails, joinerMove, joinerAddress] = await Promise.all([
+    txDetailsPromise,
+    joinerMovePromise,
+    joinerAddressPromise,
+  ]);
+
+  const { from, to } = txDetails;
+
+  if (!isAddressEqual(joinerAddress, userAddress)) {
+    res
+      .status(401)
+      .json({ message: "joiner address cannot play this contract" });
+    return false;
+  }
+
+  if (
+    !isAddressEqual(from, userAddress) ||
+    to === null ||
+    !isAddressEqual(to, contractAddress)
+  ) {
+    res.status(400).json({ message: "incorrect tx sent" });
+    return false;
+  }
+
+  if (joinerMove === Moves.Null) {
+    res.status(400).json({ message: "move not played" });
+    return false;
+  }
+
+  return identifiers.creatorIdentifier;
+}
+
+function win(c1: Moves, c2: Moves): Winner {
+  if (c1 === c2) return "draw";
+  else if (c1 === Moves.Null) return "incomplete";
+  else if (c1 % 2 === c2 % 2) {
+    return "creator";
+  } else {
+    return "joiner";
+  }
+}
+
+// const FIVE_MINUTES_IN_SECONDS = 300;
+
+// as the contract TIMEOUT is fixed, I am declaring the value here as a const. For a varying value, I could fetch from the contract when using it;
+const CONTRACT_TIMEOUT_SHORT = 15;
+
+const CONTRACT_TIMEOUT = CONTRACT_TIMEOUT_SHORT;
+
+// block.timestamp is accurate to ~10 seconds, so we have a bit of a buffer
+// const TEN_SECONDS = 10;
+
+const shortBufferTime = 5;
+
+const bufferTime = shortBufferTime;
