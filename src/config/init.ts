@@ -26,6 +26,9 @@ const envArg: EnvClassConstructorArgs = {
   socketEnv: {
     SOCKET_KEY: process.env.SOCKET_KEY,
   },
+  siweEnv: {
+    SIWE_SESSION_SECRET: process.env.SIWE_SESSION_SECRET,
+  },
 };
 
 export const env_Vars = new Env_Vars(envArg);

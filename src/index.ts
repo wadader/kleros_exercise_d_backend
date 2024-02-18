@@ -38,7 +38,7 @@ app.use(cors(corsOptions));
 app.use(
   Session({
     name: "siwe",
-    secret: "siwe-secret",
+    secret: env_Vars.siwe.SIWE_SESSION_SECRET,
     resave: true,
     saveUninitialized: false,
     cookie: { secure: false, sameSite: "lax" },
@@ -50,7 +50,6 @@ app.use("/api/v1/salt", saltRouter);
 app.use("/api/v1/game", gameRouter);
 
 app.get("*", function (_req: Request, res: Response) {
-  console.log("_req.params", _req.params);
   console.log("404ing");
   res.status(404).json({ status: "404" });
 });

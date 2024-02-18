@@ -4,6 +4,7 @@ import {
   DbEnv,
   EnvClassConstructorArgs,
   InfuraEnv,
+  SiweEnv,
   SocketEnv,
 } from "./types";
 import dotenv from "dotenv";
@@ -44,10 +45,17 @@ export class Env_Vars {
     this.socket = {
       SOCKET_KEY: envArgs.socketEnv.SOCKET_KEY,
     };
+
+    if (!envArgs.siweEnv.SIWE_SESSION_SECRET)
+      throw "SIWE_SESSION_SECRET not defined in env";
+    this.siwe = {
+      SIWE_SESSION_SECRET: envArgs.siweEnv.SIWE_SESSION_SECRET,
+    };
   }
 
   readonly infura: InfuraEnv;
   readonly app: AppEnv;
   readonly db: DbEnv;
   readonly socket: SocketEnv;
+  readonly siwe: SiweEnv;
 }
