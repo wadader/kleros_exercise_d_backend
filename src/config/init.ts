@@ -15,6 +15,8 @@ const envArg: EnvClassConstructorArgs = {
   },
   appEnv: {
     BACKEND_PORT: process.env.BACKEND_PORT,
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
+
   },
   dbEnv: {
     HOST: process.env.DB_HOST,

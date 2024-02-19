@@ -28,8 +28,10 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use(express.json());
 
+const allowedOrigins = env_Vars.app.ALLOWED_ORIGINS.split(",");
+
 export const corsOptions: CorsOptions = {
-  origin: ["http://localhost:5174", "http://localhost:5173"],
+  origin: allowedOrigins,
   credentials: true,
 };
 

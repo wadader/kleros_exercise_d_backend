@@ -16,7 +16,13 @@ export class Env_Vars {
     console.log("constructing env_vars - this message should only appear once");
 
     if (!envArgs.appEnv.BACKEND_PORT) throw "BACKEND_PORT not defined in env";
-    this.app = { BACKEND_PORT: Number(envArgs.appEnv.BACKEND_PORT) };
+    if (!envArgs.appEnv.ALLOWED_ORIGINS)
+      throw "ALLOWED_ORIGINS not defined in env";
+
+    this.app = {
+      BACKEND_PORT: Number(envArgs.appEnv.BACKEND_PORT),
+      ALLOWED_ORIGINS: envArgs.appEnv.ALLOWED_ORIGINS,
+    };
     if (isNaN(this.app.BACKEND_PORT))
       throw "BACKEND_PORT does not seem like a number";
 

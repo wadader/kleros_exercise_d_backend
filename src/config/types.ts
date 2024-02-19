@@ -1,5 +1,6 @@
 export interface AppEnv {
   BACKEND_PORT: number;
+  ALLOWED_ORIGINS:string
 }
 
 export interface InfuraEnv {
