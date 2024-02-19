@@ -1,6 +1,6 @@
 import express from "express";
 import { Request, Response } from "express";
-import cors, { CorsOptions } from "cors";
+// import cors, { CorsOptions } from "cors";
 import { SiweResponse } from "siwe";
 import Session from "express-session";
 
