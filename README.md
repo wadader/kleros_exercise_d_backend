@@ -53,11 +53,11 @@ Security: Medium --- Convenience: Very High
 2. App usable from anywhere
 3. Slightly lower security due to traffic of salt and another vector of attack available, i.e. database
 
-## Personal Observations
+## Backend - Personal Observations
 
 I was initially implementing option 4, which was my main motivation for setting up Sign-in-with-ethereum for this exercise. However, I scaled back and ended up going with option 2 due to time-constraints.
 
-## Possible Improvements
+## Backend - Possible Improvements
 
 1. In a ripple-based project, I got signed transaction from the users and handled and submitted them from the backend. I feel like a similar strategy could be used here for good effect. Will have to check if and how ethereum implements such a flow.
 
