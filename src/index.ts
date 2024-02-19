@@ -37,6 +37,8 @@ export const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
+app.enable('trust proxy');
+
 app.use(
   Session({
     name: "siwe",
