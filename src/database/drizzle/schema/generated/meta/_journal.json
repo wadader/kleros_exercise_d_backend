@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1708172250123,
+      "tag": "0000_bitter_fabian_cortez",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "id": "923b3e0d-1cd2-4b91-957a-27354cedc07a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "logins": {
+      "name": "logins",
+      "schema": "",
+      "columns": {
+        "logins": {
+          "name": "logins",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rpslz_games": {
+      "name": "rpslz_games",
+      "schema": "",
+      "columns": {
+        "tx_hash": {
+          "name": "tx_hash",
+          "type": "char(66)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_contract_address": {
+          "name": "created_contract_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salt_id": {
+          "name": "salt_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "joiner_address": {
+          "name": "joiner_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_game_over": {
+          "name": "is_game_over",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rpslz_games_salt_id_salts_id_fk": {
+          "name": "rpslz_games_salt_id_salts_id_fk",
+          "tableFrom": "rpslz_games",
+          "tableTo": "salts",
+          "columnsFrom": [
+            "salt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rpslz_games_created_contract_address_unique": {
+          "name": "rpslz_games_created_contract_address_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "created_contract_address"
+          ]
+        },
+        "rpslz_games_salt_id_unique": {
+          "name": "rpslz_games_salt_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "salt_id"
+          ]
+        }
+      }
+    },
+    "salts": {
+      "name": "salts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "salt": {
+          "name": "salt",
+          "type": "numeric(78)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_by_address": {
+          "name": "requested_by_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "salts_salt_unique": {
+          "name": "salts_salt_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "salt"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
