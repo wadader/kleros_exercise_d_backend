@@ -43,7 +43,7 @@ app.use(
     secret: env_Vars.siwe.SIWE_SESSION_SECRET,
     resave: true,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production", sameSite: "none" },
+    cookie: { secure: process.env.NODE_ENV === "production", sameSite: 'none' },
   })
 );
 
