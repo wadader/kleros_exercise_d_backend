@@ -18,7 +18,8 @@ export const verifyMessage = async (req: Request, res: Response) => {
     const messageNonce = fields.data.nonce;
 
     console.log("messageNonce:", messageNonce);
-    console.log("fields.data.nonce:", fields.data.nonce);
+    console.log("req.session.nonce", req.session.nonce);
+    console.log("req.session", req.session);
 
     const areNoncesUnequal = messageNonce !== req.session.nonce;
 
