@@ -1,6 +1,6 @@
 import express from "express";
 import { Request, Response } from "express";
-// import cors, { CorsOptions } from "cors";
+import cors, { CorsOptions } from "cors";
 import { SiweResponse } from "siwe";
 import Session from "express-session";
 
@@ -28,14 +28,14 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.use(express.json());
 
-// const allowedOrigins = env_Vars.app.ALLOWED_ORIGINS.split(",");
+const allowedOrigins = env_Vars.app.ALLOWED_ORIGINS.split(",");
 
-// export const corsOptions: CorsOptions = {
-//   origin: allowedOrigins,
-//   credentials: true,
-// };
+export const corsOptions: CorsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(
   Session({
