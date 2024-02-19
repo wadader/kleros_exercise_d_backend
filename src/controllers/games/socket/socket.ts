@@ -6,7 +6,16 @@ import {
   Game_ClientToServerEvents,
   Game_ServerToClientEvents,
 } from "./types";
-import { corsOptions } from "../../..";
+import { env_Vars } from "../../../config/init";
+import { CorsOptions } from "cors";
+// import { corsOptions } from "../../..";
+
+const allowedOrigins = env_Vars.app.ALLOWED_ORIGINS.split(",");
+
+const corsOptions: CorsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
 
 export class GameIo {
   gameServer: GameServer;
