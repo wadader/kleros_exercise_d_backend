@@ -1,5 +1,5 @@
 import { EthAddress, EthHash, isEthAddress } from "../types/web3";
-import { drizzleDb, encryptor, salt } from "../config/init";
+import { drizzleDb, encryptor } from "../config/init";
 import { rpslzGames } from "../database/drizzle/schema/schema";
 import { RPS_ARTIFACT } from "../artifacts/RPS";
 import { getPublicClient } from "../config/ethClients";
@@ -22,16 +22,11 @@ export class Game {
     creatorAddress: EthAddress
   ): Promise<string> => {
     try {
-      const saltId = await salt.getSaltId(_salt);
-
-      if (saltId === undefined) throw "salt not found";
-
       const joinerAddress = await this.getContractJoiner(createdGameAddress);
 
       await drizzleDb.insert(rpslzGames).values({
         txHash: gameCreationTxHash,
         createdContractAddress: createdGameAddress,
-        saltId,
         joinerAddress,
       });
 
