@@ -37,7 +37,8 @@ export const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
-app.enable('trust proxy');
+// auth wasn't working as the app was behind cloudflare's proxy/ This fixes it.
+app.enable("trust proxy");
 
 app.use(
   Session({
@@ -45,7 +46,7 @@ app.use(
     secret: env_Vars.siwe.SIWE_SESSION_SECRET,
     resave: true,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production", sameSite: 'none' },
+    cookie: { secure: process.env.NODE_ENV === "production", sameSite: "none" },
   })
 );
 
