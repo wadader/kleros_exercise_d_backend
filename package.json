@@ -11,7 +11,7 @@
     "dev": "NODE_ENV=dev ts-node src/index.ts",
     "build": "npx tsc",
     "stage": "NODE_ENV=staging node dist/index.js",
-    "start": "NODE_ENV=prod node dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "inspect": "NODE_ENV=dev node --inspect dist/index.js",
     "drizzle-generate": "NODE_ENV=migration yarn drizzle-kit generate:pg"
   },
