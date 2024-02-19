@@ -388,8 +388,7 @@ async function getIsFetchedByteCodeCorrect(
   const fetchedBytecode = await games.publicClient.getBytecode({
     address: contractAddr,
   });
-  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode)
-    return true;
+  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode) return true;
   return false;
 }
 
@@ -477,16 +476,11 @@ function win(move1: Moves, move2: Moves): Winner {
     return "joiner";
   }
 }
-// const FIVE_MINUTES_IN_SECONDS = 300;
 
 // as the contract TIMEOUT is fixed, I am declaring the value here as a const. For a varying value, I could fetch from the contract when using it;
-const CONTRACT_TIMEOUT_SHORT = 15;
-
-const CONTRACT_TIMEOUT = CONTRACT_TIMEOUT_SHORT;
+const FIVE_MINUTES_IN_SECONDS = 300;
+const CONTRACT_TIMEOUT = FIVE_MINUTES_IN_SECONDS;
 
 // block.timestamp is accurate to ~10 seconds, so we have a bit of a buffer
-// const TEN_SECONDS = 10;
-
-const shortBufferTime = 5;
-
-const bufferTime = shortBufferTime;
+const FIVE_SECONDS = 5;
+const bufferTime = FIVE_SECONDS;
