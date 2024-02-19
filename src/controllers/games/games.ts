@@ -377,7 +377,7 @@ async function solveGame(
 
   gameIo.gameServer
     .to(identifiers.joinerIdentifier)
-    .emit("game:creator-solved", winner, contractAddress);
+    .emit("game:creator-solved", winner, winnerAddress);
 
   games.gameIdentifers.delete(contractAddress);
 }
@@ -388,7 +388,8 @@ async function getIsFetchedByteCodeCorrect(
   const fetchedBytecode = await games.publicClient.getBytecode({
     address: contractAddr,
   });
-  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode) return true;
+  if (fetchedBytecode === RPS_ARTIFACT.fifteenSecondDeployedVytecode)
+    return true;
   return false;
 }
 
@@ -455,16 +456,27 @@ async function validateJoinerAndReturnCreatorIdentifier(
   return identifiers.creatorIdentifier;
 }
 
-function win(c1: Moves, c2: Moves): Winner {
-  if (c1 === c2) return "draw";
-  else if (c1 === Moves.Null) return "incomplete";
-  else if (c1 % 2 === c2 % 2) {
+function win(move1: Moves, move2: Moves): Winner {
+  if (move1 === move2) {
+    return "draw";
+  } else if (move1 === Moves.Null) {
+    return "incomplete";
+  } else if (
+    (move1 === Moves.Rock &&
+      (move2 === Moves.Scissors || move2 === Moves.Lizard)) ||
+    (move1 === Moves.Paper &&
+      (move2 === Moves.Rock || move2 === Moves.Spock)) ||
+    (move1 === Moves.Scissors &&
+      (move2 === Moves.Paper || move2 === Moves.Lizard)) ||
+    (move1 === Moves.Spock &&
+      (move2 === Moves.Scissors || move2 === Moves.Rock)) ||
+    (move1 === Moves.Lizard && (move2 === Moves.Spock || move2 === Moves.Paper))
+  ) {
     return "creator";
   } else {
     return "joiner";
   }
 }
-
 // const FIVE_MINUTES_IN_SECONDS = 300;
 
 // as the contract TIMEOUT is fixed, I am declaring the value here as a const. For a varying value, I could fetch from the contract when using it;
