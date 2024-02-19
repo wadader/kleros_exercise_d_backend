@@ -19,9 +19,10 @@ export const verifyMessage = async (req: Request, res: Response) => {
 
     console.log("messageNonce:", messageNonce);
     console.log("fields.data.nonce:", fields.data.nonce);
-    console.log("fields.data:", fields.data);
 
     const areNoncesUnequal = messageNonce !== req.session.nonce;
+
+    console.log("areNoncesUnequal:", areNoncesUnequal);
 
     if (areNoncesUnequal)
       return res.status(422).json({ message: "Invalid nonce" });
