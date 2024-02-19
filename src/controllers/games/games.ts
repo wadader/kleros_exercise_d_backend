@@ -388,7 +388,7 @@ async function getIsFetchedByteCodeCorrect(
   const fetchedBytecode = await games.publicClient.getBytecode({
     address: contractAddr,
   });
-  if (fetchedBytecode === RPS_ARTIFACT.fifteenSecondDeployedVytecode)
+  if (fetchedBytecode === RPS_ARTIFACT.deployedBytecode)
     return true;
   return false;
 }
