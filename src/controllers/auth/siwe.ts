@@ -2,11 +2,7 @@ import { Request, Response } from "express";
 import { generateNonce, SiweMessage } from "siwe";
 import { logins } from "../../config/init";
 
-export const attachNonce = async (
-  req: Request,
-  res: Response
-  // next: NextFunction
-) => {
+export const attachNonce = async (req: Request, res: Response) => {
   req.session.nonce = generateNonce();
   req.session.save();
   res.status(200).send(req.session.nonce);
